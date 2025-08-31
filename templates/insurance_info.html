@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Information - Healthcare Provider Directory</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .search-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .results-container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        .pagination {
+            margin-top: 20px;
+        }
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Healthcare Provider Directory</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('suites') }}">Suites</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{ url_for('insurance_info') }}">Insurance Info</a>
+                    </li>
+                
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_logout') }}">Logout</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_login') }}">Admin Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="text-center mb-4">Insurance and Price Information</h1>
+        
+        <!-- Search Form -->
+        <div class="search-container">
+            <form method="GET" action="{{ url_for('insurance_info') }}">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="procedure">Procedure</label>
+                        <input type="text" class="form-control" id="procedure" name="procedure" value="{{ request.args.get('procedure', '') }}" placeholder="Enter procedure name">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="code">Code</label>
+                        <input type="text" class="form-control" id="code" name="code" value="{{ request.args.get('code', '') }}" placeholder="Enter procedure code">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="payer">Payer</label>
+                        <input type="text" class="form-control" id="payer" name="payer" value="{{ request.args.get('payer', '') }}" placeholder="Enter payer name">
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="{{ url_for('insurance_info') }}" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Results Count -->
+        <div class="results-count mb-3">
+            {% if total_count > 0 %}
+                <h4>Found {{ total_count }} price quote{{ 's' if total_count != 1 else '' }}</h4>
+            {% else %}
+                <h4>No price quotes found</h4>
+            {% endif %}
+        </div>
+        
+        <!-- Results -->
+        <div class="results-container">
+            {% if price_quotes %}
+                {% for quote in price_quotes %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">{{ quote.procedure }} ({{ quote.code }} - {{ quote.type }})</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if quote.standard_charges %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Setting</th>
+                                                <th>Minimum</th>
+                                                <th>Maximum</th>
+                                                <th>Payer</th>
+                                                <th>Plan</th>
+                                                <th>Standard Charge</th>
+                                                <th>Estimated Amount</th>
+                                                <th>Methodology</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for charge in quote.standard_charges %}
+                                                {% if charge.payers_information %}
+                                                    {% for payer in charge.payers_information %}
+                                                        <tr>
+                                                            <td>{{ charge.setting }}</td>
+                                                            <td>${{ "%.2f"|format(charge.minimum) if charge.minimum else 'N/A' }}</td>
+                                                            <td>${{ "%.2f"|format(charge.maximum) if charge.maximum else 'N/A' }}</td>
+                                                            <td>{{ payer.payer_name }}</td>
+                                                            <td>{{ payer.plan_name }}</td>
+                                                            <td>${{ "%.2f"|format(payer.standard_charge_dollar) }}</td>
+                                                            <td>${{ "%.2f"|format(payer.estimated_amount) if payer.estimated_amount else 'N/A' }}</td>
+                                                            <td>{{ payer.methodology }}</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <tr>
+                                                        <td>{{ charge.setting }}</td>
+                                                        <td>${{ "%.2f"|format(charge.minimum) if charge.minimum else 'N/A' }}</td>
+                                                        <td>${{ "%.2f"|format(charge.maximum) if charge.maximum else 'N/A' }}</td>
+                                                        <td colspan="5">No payer information available</td>
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p>No standard charges available for this procedure.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                
+                <!-- Pagination -->
+                {% if pages > 1 %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page > 1 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('insurance_info', page=page-1, procedure=request.args.get('procedure', ''), code=request.args.get('code', ''), payer=request.args.get('payer', '')) }}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Previous</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% for p in range(1, pages + 1) %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('insurance_info', page=p, procedure=request.args.get('procedure', ''), code=request.args.get('code', ''), payer=request.args.get('payer', '')) }}">{{ p }}</a>
+                                </li>
+                            {% endfor %}
+                            
+                            {% if page < pages %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('insurance_info', page=page+1, procedure=request.args.get('procedure', ''), code=request.args.get('code', ''), payer=request.args.get('payer', '')) }}">Next</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="no-results">
+                    <p>No price quotes found matching your search criteria.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html> 

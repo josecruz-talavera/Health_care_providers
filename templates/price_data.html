@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Data</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .table-container {
+            margin-bottom: 30px;
+        }
+        h2 {
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Price Data</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Price Quotes</h5>
+                        <p class="card-text">Total Records: {{ price_quotes_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Standard Charges</h5>
+                        <p class="card-text">Total Records: {{ standard_charges_count }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Payer Information</h5>
+                        <p class="card-text">Total Records: {{ payers_information_count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <h2>Price Quotes (Sample)</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Procedure</th>
+                        <th>Code</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quote in price_quotes %}
+                    <tr>
+                        <td>{{ quote.id }}</td>
+                        <td>{{ quote.procedure }}</td>
+                        <td>{{ quote.code }}</td>
+                        <td>{{ quote.type }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-container">
+            <h2>Standard Charges (Sample)</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Setting</th>
+                        <th>Minimum</th>
+                        <th>Maximum</th>
+                        <th>Price Quote ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for charge in standard_charges %}
+                    <tr>
+                        <td>{{ charge.id }}</td>
+                        <td>{{ charge.setting }}</td>
+                        <td>{{ charge.minimum }}</td>
+                        <td>{{ charge.maximum }}</td>
+                        <td>{{ charge.price_quote_id }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="table-container">
+            <h2>Payer Information (Sample)</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Payer Name</th>
+                        <th>Plan Name</th>
+                        <th>Standard Charge Dollar</th>
+                        <th>Estimated Amount</th>
+                        <th>Methodology</th>
+                        <th>Standard Charge ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payer in payers_information %}
+                    <tr>
+                        <td>{{ payer.id }}</td>
+                        <td>{{ payer.payer_name }}</td>
+                        <td>{{ payer.plan_name }}</td>
+                        <td>{{ payer.standard_charge_dollar }}</td>
+                        <td>{{ payer.estimated_amount }}</td>
+                        <td>{{ payer.methodology }}</td>
+                        <td>{{ payer.standard_charge_id }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Provider Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .nav-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .admin-btn {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .admin-btn:hover {
+            background-color: #34495e;
+        }
+        
+        .nav-dropdown {
+            padding: 0.5rem 1rem;
+            border: 1px solid #2c3e50;
+            border-radius: 5px;
+            background-color: white;
+            color: #2c3e50;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-dropdown:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .nav-dropdown:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+        }
+        
+        .nav-dropdown option {
+            padding: 0.5rem;
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+        }
+        
+        .navbar-brand h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+        
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .navbar-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: white ;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: #3498db;
+        }
+        
+        .nav-dropdown {
+            padding: 0.5rem 1rem;
+            border: 1px solid #2c3e50;
+            border-radius: 5px;
+            background-color: white;
+            color: #2c3e50;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-dropdown:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .nav-dropdown:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.2);
+        }
+        
+        .admin-btn {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .admin-btn:hover {
+            background-color: #34495e;
+        }
+
+        .search-container {
+            margin-top: 90px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .navbar-menu {
+                flex-direction: column;
+                width: 100%;
+                margin: 1rem 0;
+            }
+            
+            .navbar-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .nav-link, .nav-dropdown, .admin-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+        
+        .results-count {
+            text-align: center;
+            margin: 2rem 0;
+            color: #2c3e50;
+        }
+        
+        .results-count h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            padding: 0.5rem 0;
+        }
+        
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1001;
+        }
+        
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background-color: #2c3e50;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .navbar-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                height: 100vh;
+                background-color: white;
+                flex-direction: column;
+                padding: 80px 2rem 2rem;
+                transition: right 0.3s ease-in-out;
+                box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            }
+            
+            .navbar-menu.active {
+                right: 0;
+            }
+            
+            .navbar-menu a,
+            .navbar-menu select {
+                width: 100%;
+                text-align: left;
+                margin: 0.5rem 0;
+            }
+            
+            .navbar-brand {
+                z-index: 1001;
+            }
+            
+            .hamburger.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+            
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .back-to-top:hover {
+            background-color: #34495e;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-to-top:active {
+            transform: translateY(1px);
+        }
+        
+        @media (max-width: 768px) {
+            .back-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <h1>Healthcare Provider Directory</h1>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-menu" id="navbarMenu">
+                <a href="{{ url_for('suites') }}" class="nav-link">View Suite Directory</a>
+                <a href="https://www.primehealthcare.com/locations/" class="nav-link" target="_blank">Suites</a>
+                <a href="https://healthcare.ascension.org/find-care" class="nav-link" target="_blank">Find Care</a>
+                <a href="{{ url_for('insurance_info') }}" class="nav-link">Insurance Info</a>
+                <a href="{{ url_for('admin_login') }}" class="nav-link">Admin Login</a>
+                <select class="nav-dropdown" onchange="handleDropdownChange(this.value)">
+                    <option value="">Visitor Information</option>
+                    <option value="https://resurrectionmedicalcenter.com/visitor-information/">RMC</option>
+                    <option value="https://saintmaryofnazarethhospital.com/visitor-information/">SMN</option>
+                    <option value="https://saintfrancisevanston.org/visitor-information/">SFH</option>
+                    <option value="https://saintjosephelgin.com/patients-visitors/visitor-information/">SJEH</option>
+                    <option value="https://holyfamilymedicalcenter.com/visitor-information/">HFMC</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+
+        <div class="search-container">
+            <form action="{{ url_for('index') }}" method="GET">
+                <div class="search-group">
+                    <label for="name">Search by Name:</label>
+                    <input type="text" id="name" name="name" value="{{ name }}" placeholder="Enter first or last name">
+                </div>
+                <div class="search-group">
+                    <label for="specialty">Search by Specialty:</label>
+                    <input type="text" id="specialty" name="specialty" value="{{ specialty }}" placeholder="Enter specialty">
+                </div>
+                <div class="search-group">
+                    <label for="location">Search by Location:</label>
+                    <input type="text" id="location" name="location" value="{{ location }}" placeholder="Enter location">
+                </div>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <div class="results-count">
+            <h2>MyChart support number: 844-588-4357</h2>
+            {% if results %}
+                <h2>Found {{ results|length }} Provider{% if results|length != 1 %}s{% endif %}</h2>
+            {% else %}
+                <h2>No Providers Found</h2>
+            {% endif %}
+        </div>
+
+        <div class="results-container">
+            {% if query %}
+            <h2>Search Results</h2>
+            {% else %}
+            <h2>All Healthcare Providers</h2>
+            {% endif %}
+            
+            {% if results %}
+                {% for provider in results %}
+                <div class="provider-card">
+                    <h3>{{ provider.title if provider.title }} {{ provider.first_name }} {{ provider.middle_name if provider.middle_name }} {{ provider.last_name }}</h3>
+                    <p class="specialty">{{ provider.specialty }}{% if provider.sub_specialty %} - {{ provider.sub_specialty }}{% endif %}</p>
+                    <p class="location">{{ provider.service_location }}</p>
+                    <div class="details">
+                        <p><strong>Address:</strong> {{ provider.address }}, {{ provider.city }}, {{ provider.state }} {{ provider.zip_code }}</p>
+                        <p><strong>Phone:</strong> {{ provider.phone }}</p>
+                        {% if provider.fax %}
+                        <p><strong>Fax:</strong> {{ provider.fax }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <p>No providers found matching your search.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <button id="backToTop" class="back-to-top" title="Back to Top">↑</button>
+    <script>
+        function handleDropdownChange(value) {
+            if (value) {
+                window.open(value, '_blank');
+            }
+        }
+        
+        function toggleMenu() {
+            const menu = document.getElementById('navbarMenu');
+            const hamburger = document.querySelector('.hamburger');
+            menu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        }
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('navbarMenu');
+            const hamburger = document.querySelector('.hamburger');
+            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
+                menu.classList.remove('active');
+                hamburger.classList.remove('active');
+            }
+        });
+
+        // Back to Top Button
+        const backToTopButton = document.getElementById('backToTop');
+
+        // Show button when scrolling down
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+
+        // Smooth scroll to top when clicked
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+
+# Environment variables (DO NOT COMMIT REAL SECRETS)
+.env
+*.env
+
+# Databases
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# OS / IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build / Packaging
+dist/
+build/
+*.egg-info/
+
+#data
+data/
+instance/
+reference/

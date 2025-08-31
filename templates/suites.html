@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suite Directory</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .suite-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .suite-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .suite-number {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        
+        .suite-details {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .suite-details p {
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
+        }
+        
+        .suite-details strong {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .practice-list, .physician-list {
+            margin-left: 1.5rem;
+        }
+
+        .practice-list li, .physician-list li {
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .practice-list li:last-child, .physician-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .nav-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Suite Directory</h1>
+        <a href="{{ url_for('index') }}" class="nav-link">Back to Provider Directory</a>
+        
+        <div class="results-container">
+            
+            <h2>St Mary Suites</h2>
+            
+            
+            {% if entries %}
+                {% for entry in entries %}
+                <div class="suite-card">
+                    <div class="suite-number">Suite {{ entry.suite }}</div>
+                    <div class="suite-details">
+                        {% if entry.practices %}
+                        <p><strong>Practices:</strong></p>
+                        <ul class="practice-list">
+                            {% for practice in entry.practices %}
+                            <li>{{ practice }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if entry.physicians %}
+                        <p><strong>Physicians:</strong></p>
+                        <ul class="physician-list">
+                            {% for physician in entry.physicians %}
+                            <li>{{ physician }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-results">
+                    <p>No suite information available.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html> 
