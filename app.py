@@ -5,9 +5,6 @@ from models import (
     db,
     HealthcareProvider,
     Suites,
-    Price_quotes,
-    Standard_charges,
-    Payers_information,
     init_db,
 )
 from admin import init_admin, login_manager, login_user, login_required, logout_user, current_user, User
