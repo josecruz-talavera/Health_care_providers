@@ -1,6 +1,15 @@
 from flask import render_template, request, redirect, url_for, flash
 from sqlalchemy import text, distinct
-from models import app, db, HealthcareProvider, init_db, Suites, Price_quotes, Standard_charges, Payers_information
+from models import (
+    app,
+    db,
+    HealthcareProvider,
+    Suites,
+    Price_quotes,
+    Standard_charges,
+    Payers_information,
+    init_db,
+)
 from admin import init_admin, login_manager, login_user, login_required, logout_user, current_user, User
 import re
 import pandas as pd
@@ -11,6 +20,7 @@ import os
 from sqlalchemy import or_, and_
 
 # Initialize the database and admin interface
+load_dotenv()
 app.config['DATABASE_PATH'] = os.getenv('DATABASE_PATH')
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 init_db(app)

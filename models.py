@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.sql import text
 
 # Initialize Flask app and SQLAlchemy
 app = Flask(__name__)
@@ -72,3 +71,58 @@ class Suites(db.Model):
             'physician_name': self.physician_name,
             'practice_name': self.practice_name
         }
+
+
+class Price_quotes(db.Model):
+    __tablename__ = 'price_quotes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    procedure = db.Column(db.String, index=True)
+    code = db.Column(db.String, index=True)
+    type = db.Column(db.String, index=True)
+
+    standard_charges = db.relationship(
+        'Standard_charges',
+        backref='price_quote',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+
+class Standard_charges(db.Model):
+    __tablename__ = 'standard_charges'
+
+    id = db.Column(db.Integer, primary_key=True)
+    setting = db.Column(db.String, index=True)
+    minimum = db.Column(db.Float)
+    maximum = db.Column(db.Float)
+    price_quote_id = db.Column(db.Integer, db.ForeignKey('price_quotes.id'), index=True)
+
+    payers_information = db.relationship(
+        'Payers_information',
+        backref='standard_charge',
+        lazy=True,
+        cascade='all, delete-orphan'
+    )
+
+
+class Payers_information(db.Model):
+    __tablename__ = 'payers_information'
+
+    id = db.Column(db.Integer, primary_key=True)
+    payer_name = db.Column(db.String, index=True)
+    plan_name = db.Column(db.String, index=True)
+    standard_charge_dollar = db.Column(db.Float)
+    estimated_amount = db.Column(db.Float)
+    methodology = db.Column(db.String)
+    standard_charge_id = db.Column(db.Integer, db.ForeignKey('standard_charges.id'), index=True)
+
+
+def init_db(flask_app):
+    database_path = flask_app.config.get('DATABASE_PATH', 'healthcare.db')
+    flask_app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{database_path}"
+    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(flask_app)
+
+    with flask_app.app_context():
+        db.create_all()
