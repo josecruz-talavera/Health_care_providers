@@ -6,8 +6,9 @@ import os
 app = Flask(__name__)
 db = SQLAlchemy()
 
+
 class HealthcareProvider(db.Model):
-    __tablename__ = 'healthcare_providers'
+    __tablename__ = "healthcare_providers"
 
     id = db.Column(db.Integer, primary_key=True)
     membership_status = db.Column(db.String)
@@ -34,32 +35,33 @@ class HealthcareProvider(db.Model):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'membership_status': self.membership_status,
-            'nearest_facility': self.nearest_facility,
-            'prime_privileges': self.prime_privileges,
-            'physician_type': self.physician_type,
-            'affiliation_status': self.affiliation_status,
-            'specialty': self.specialty,
-            'sub_specialty': self.sub_specialty,
-            'service_details': self.service_details,
-            'gender': self.gender,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'middle_name': self.middle_name,
-            'title': self.title,
-            'service_location': self.service_location,
-            'address': self.address,
-            'city': self.city,
-            'state': self.state,
-            'zip_code': self.zip_code,
-            'phone': self.phone,
-            'fax': self.fax,
-            'preferred_provider': self.preferred_provider
+            "id": self.id,
+            "membership_status": self.membership_status,
+            "nearest_facility": self.nearest_facility,
+            "prime_privileges": self.prime_privileges,
+            "physician_type": self.physician_type,
+            "affiliation_status": self.affiliation_status,
+            "specialty": self.specialty,
+            "sub_specialty": self.sub_specialty,
+            "service_details": self.service_details,
+            "gender": self.gender,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "middle_name": self.middle_name,
+            "title": self.title,
+            "service_location": self.service_location,
+            "address": self.address,
+            "city": self.city,
+            "state": self.state,
+            "zip_code": self.zip_code,
+            "phone": self.phone,
+            "fax": self.fax,
+            "preferred_provider": self.preferred_provider,
         }
 
+
 class Suites(db.Model):
-    __tablename__ = 'suites'
+    __tablename__ = "suites"
 
     id = db.Column(db.Integer, primary_key=True)
     suite = db.Column(db.String)
@@ -68,18 +70,18 @@ class Suites(db.Model):
 
     def to_dict(self):
         return {
-            'suite': self.suite,
-            'physician_name': self.physician_name,
-            'practice_name': self.practice_name
+            "suite": self.suite,
+            "physician_name": self.physician_name,
+            "practice_name": self.practice_name,
         }
 
 
 def init_db(flask_app):
-    database_url = os.getenv('DATABASE_URL')
-    if database_url and database_url.startswith('postgresql://'):
-        database_url = database_url.replace('postgresql://', 'postgresql+psycopg://', 1)
-    flask_app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    database_url = os.getenv("DATABASE_URL")
+    if database_url and database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    flask_app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    flask_app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(flask_app)
 
     with flask_app.app_context():
