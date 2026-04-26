@@ -8,9 +8,6 @@ from models import (
     init_db,
 )
 from admin import init_admin, login_manager, login_user, login_required, logout_user, current_user, User
-import re
-import pandas as pd
-from pathlib import Path
 from collections import defaultdict
 from dotenv import load_dotenv
 import os
@@ -18,7 +15,6 @@ from sqlalchemy import or_, and_
 
 # Initialize the database and admin interface
 load_dotenv()
-app.config['DATABASE_PATH'] = os.getenv('DATABASE_PATH')
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 init_db(app)
 init_admin(app)
@@ -46,12 +42,10 @@ def admin_logout():
 
 @app.route('/')
 def index():
-    query = request.args.get('query', '')
     name = request.args.get('name', '')
     specialty = request.args.get('specialty', '')
     location = request.args.get('location', '')
     
-    # Define specialty synonyms and related terms
     specialty_synonyms = {
         'cancer': ['hematology', 'oncology', 'hematology/oncology', 'medical oncology', 'radiation oncology'],
         'hematology': ['cancer', 'oncology', 'hematology/oncology', 'medical oncology'],
@@ -81,10 +75,8 @@ def index():
         'obstetrics and gynecology': ['obgyn', 'ob/gyn', 'women health', 'reproductive']
     }
     
-    # Build the query
     base_query = HealthcareProvider.query
     
-    # Add name search if provided
     if name:
         name_terms = name.split()
         name_conditions = []
@@ -97,14 +89,11 @@ def index():
             )
         base_query = base_query.filter(and_(*name_conditions))
     
-    # Add specialty search if provided
     if specialty:
         specialty_terms = specialty.lower().split()
         specialty_conditions = []
         for term in specialty_terms:
-            # Get synonyms for the term
             synonyms = specialty_synonyms.get(term, [term])
-            # Create conditions for the term and its synonyms
             term_conditions = []
             for syn in synonyms:
                 term_conditions.extend([
@@ -114,7 +103,6 @@ def index():
             specialty_conditions.append(or_(*term_conditions))
         base_query = base_query.filter(and_(*specialty_conditions))
     
-    # Add location search if provided
     if location:
         location_terms = location.split()
         location_conditions = []
@@ -130,22 +118,18 @@ def index():
             )
         base_query = base_query.filter(and_(*location_conditions))
     
-    # Order results by last name and first name
     results = base_query.order_by(HealthcareProvider.last_name, HealthcareProvider.first_name).all()
     
-    return render_template('homepage.html', 
-                         results=results, 
-                         query=query,
+    return render_template('homepage.html',
+                         results=results,
                          name=name,
                          specialty=specialty,
                          location=location)
 
 @app.route('/suites')
 def suites():
-    # Get all suites from the database
     suites = Suites.query.all()
     
-    # Group entries by suite number
     suite_groups = defaultdict(lambda: {'practices': [], 'physicians': []})
     
     for suite in suites:
@@ -155,7 +139,6 @@ def suites():
             if suite.physician_name:
                 suite_groups[suite.suite]['physicians'].append(suite.physician_name)
     
-    # Convert to list and sort by suite number
     entries = []
     for suite, data in suite_groups.items():
         entries.append({
@@ -164,69 +147,94 @@ def suites():
             'physicians': data['physicians']
         })
     
-    # Sort entries by suite number
     entries.sort(key=lambda x: int(x['suite']) if x['suite'].isdigit() else float('inf'))
     
     return render_template('suites.html', entries=entries)
 
-@app.route('/price_data')
-def price_data():
-    # Get counts
-    price_quotes_count = Price_quotes.query.count()
-    standard_charges_count = Standard_charges.query.count()
-    payers_information_count = Payers_information.query.count()
-    
-    # Get sample data
-    price_quotes = Price_quotes.query.limit(10).all()
-    standard_charges = Standard_charges.query.limit(10).all()
-    payers_information = Payers_information.query.limit(10).all()
-    
-    return render_template('price_data.html', 
-                         price_quotes_count=price_quotes_count,
-                         standard_charges_count=standard_charges_count,
-                         payers_information_count=payers_information_count,
-                         price_quotes=price_quotes,
-                         standard_charges=standard_charges,
-                         payers_information=payers_information)
 
-@app.route('/insurance_info')
-def insurance_info():
-    # Get search parameters
-    procedure = request.args.get('procedure', '')
-    code = request.args.get('code', '')
-    payer = request.args.get('payer', '')
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-    
-    # Build query
-    query = Price_quotes.query
-    
-    if procedure:
-        query = query.filter(Price_quotes.procedure.ilike(f'%{procedure}%'))
-    
-    if code:
-        query = query.filter(Price_quotes.code.ilike(f'%{code}%'))
-    
-    if payer:
-        # This is more complex as we need to join with Payers_information
-        query = query.join(Standard_charges).join(Payers_information).filter(
-            Payers_information.payer_name.ilike(f'%{payer}%')
-        )
-    
-    # Get total count for pagination
-    total_count = query.count()
-    
-    # Apply pagination
-    price_quotes = query.paginate(page=page, per_page=per_page, error_out=False).items
-    
-    # Calculate total pages
-    pages = (total_count + per_page - 1) // per_page
-    
-    return render_template('insurance_info.html',
-                         price_quotes=price_quotes,
-                         total_count=total_count,
-                         page=page,
-                         pages=pages)
+@app.route('/setup')
+def setup():
+    db.create_all()
+
+    if HealthcareProvider.query.first():
+        return "Database already set up!"
+
+    import pandas as pd
+
+    # Process PCP CSV
+    pcp_path = os.path.join(os.path.dirname(__file__), 'data', 'Prime-Healthcare-Network-IL_PCP-Directory1.csv')
+    sp_path = os.path.join(os.path.dirname(__file__), 'data', 'Prime-Healthcare-Network-IL_SP-Directory1.csv')
+    suites_path = os.path.join(os.path.dirname(__file__), 'data', 'suites-smn.xlsx')
+
+    column_mapping = {
+        'Membership Status': 'membership_status',
+        'NearestFaclity': 'nearest_facility',
+        'Prime Privileges': 'prime_privileges',
+        'Physician Type': 'physician_type',
+        'Affliation Status': 'affiliation_status',
+        'Specialty': 'specialty',
+        'Sub Specialty': 'sub_specialty',
+        'Service Details': 'service_details',
+        'Gender': 'gender',
+        'FirstName': 'first_name',
+        'Last Name': 'last_name',
+        'MiddleName': 'middle_name',
+        'Title': 'title',
+        'Service Location (DBA)': 'service_location',
+        'Address': 'address',
+        'City': 'city',
+        'State': 'state',
+        'Zip': 'zip_code',
+        'Phone': 'phone',
+        'Fax': 'fax',
+        'Preferred Provider': 'preferred_provider'
+    }
+
+    for csv_path in [pcp_path, sp_path]:
+        df = pd.read_csv(csv_path)
+        df = df.rename(columns=column_mapping)
+        df = df.where(pd.notna(df), None)
+        for record in df.to_dict('records'):
+            provider = HealthcareProvider(**{k: v for k, v in record.items() if k in column_mapping.values()})
+            db.session.add(provider)
+    db.session.commit()
+
+    # Process suites
+    df_suites = pd.read_excel(suites_path)
+    df_suites = df_suites.rename(columns={
+        'SUITE': 'suite',
+        'PHYSICIAN NAME': 'physician_name',
+        'PRACTICE NAME': 'practice_name'
+    })
+    for record in df_suites.to_dict('records'):
+        import math
+        if record.get('suite') and not (isinstance(record['suite'], float) and math.isnan(record['suite'])):
+            suite = Suites(
+                suite=str(record['suite']),
+                physician_name=record.get('physician_name'),
+                practice_name=record.get('practice_name')
+            )
+            db.session.add(suite)
+    db.session.commit()
+
+    return "Database set up and populated successfully!"
+
+
+@app.route('/create-admin')
+def create_admin():
+    db.create_all()
+    admin_username = os.getenv('ADMIN_USERNAME')
+    admin_password = os.getenv('ADMIN_PASSWORD')
+
+    if User.query.filter_by(username=admin_username).first():
+        return "Admin already exists!"
+
+    admin_user = User(username=admin_username)
+    admin_user.set_password(admin_password)
+    db.session.add(admin_user)
+    db.session.commit()
+    return "Admin created!"
+
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
