@@ -36,6 +36,6 @@ build/
 *.egg-info/
 
 #data
-data/
+
 instance/
 reference/
